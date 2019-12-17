@@ -95,7 +95,9 @@ defmodule RedshiftEcto do
   """
 
   # Inherit all behaviour from Ecto.Adapters.SQL
-  use Ecto.Adapters.SQL, :postgrex
+  use Ecto.Adapters.SQL,
+    driver: :postgrex,
+    migration_lock: "FOR UPDATE"
 
   alias Ecto.Adapters.Postgres
 
@@ -125,7 +127,7 @@ defmodule RedshiftEcto do
   def loaders(_, type), do: [type]
 
   defp json_decode(x) when is_binary(x) do
-    {:ok, Ecto.Adapter.json_library().decode!(x)}
+    {:ok, Poison.decode!(x)}
   end
 
   defp json_decode(x), do: {:ok, x}
@@ -143,7 +145,7 @@ defmodule RedshiftEcto do
   def dumpers(_, type), do: [type]
 
   defp json_encode(%{} = x) do
-    {:ok, Ecto.Adapter.json_library().encode!(x)}
+    {:ok, Poison.encode!(x)}
   end
 
   defp json_encode(x), do: {:ok, x}
@@ -151,6 +153,7 @@ defmodule RedshiftEcto do
   ## Storage API
 
   @doc false
+  @impl true
   def storage_up(opts) do
     database =
       Keyword.fetch!(opts, :database) || raise ":database is nil in repository configuration"
@@ -173,6 +176,7 @@ defmodule RedshiftEcto do
   end
 
   @doc false
+  @impl true
   def storage_down(opts) do
     database =
       Keyword.fetch!(opts, :database) || raise ":database is nil in repository configuration"
@@ -189,6 +193,21 @@ defmodule RedshiftEcto do
 
       {:error, error} ->
         {:error, Exception.message(error)}
+    end
+  end
+
+  @impl Ecto.Adapter.Storage
+  def storage_status(opts) do
+    database =
+      Keyword.fetch!(opts, :database) || raise ":database is nil in repository configuration"
+    opts = Keyword.put(opts, :database, "template1")
+
+    check_database_query = "SELECT datname FROM pg_catalog.pg_database WHERE datname = '#{database}'"
+
+    case run_query(check_database_query, opts) do
+      {:ok, %{num_rows: 0}} -> :down
+      {:ok, %{num_rows: _num_rows}} -> :up
+      other -> {:error, other}
     end
   end
 
