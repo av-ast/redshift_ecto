@@ -795,7 +795,7 @@ if Code.ensure_loaded?(Postgrex) do
       do: [" DEFAULT ", to_string(literal)]
 
     defp default_expr({:ok, %{} = map}, :map) do
-      default = Poison.encode!(map)
+      default = json_library().encode!(map)
       [" DEFAULT ", single_quote(default)]
     end
 
@@ -990,6 +990,11 @@ if Code.ensure_loaded?(Postgrex) do
 
     defp error!(query, message) do
       raise Ecto.QueryError, query: query, message: message
+    end
+
+    defp json_library do
+      Application.get_env(:postgrex, :json_library) ||
+        raise "Please, configure your JSON library"
     end
   end
 end

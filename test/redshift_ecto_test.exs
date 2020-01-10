@@ -1126,7 +1126,7 @@ defmodule RedshiftEctoTest do
        ]}
 
     assert execute_ddl(create) == [
-             ~s|CREATE TABLE "posts" ("a" varchar(max) DEFAULT '{"foo":"bar","baz":"boom"}')|
+             ~s|CREATE TABLE "posts" ("a" varchar(max) DEFAULT '{"baz":"boom","foo":"bar"}')|
            ]
   end
 

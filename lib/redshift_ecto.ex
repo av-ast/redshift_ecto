@@ -127,7 +127,7 @@ defmodule RedshiftEcto do
   def loaders(_, type), do: [type]
 
   defp json_decode(x) when is_binary(x) do
-    {:ok, Poison.decode!(x)}
+    {:ok, Ecto.Adapter.json_library().decode!(x)}
   end
 
   defp json_decode(x), do: {:ok, x}
@@ -145,7 +145,7 @@ defmodule RedshiftEcto do
   def dumpers(_, type), do: [type]
 
   defp json_encode(%{} = x) do
-    {:ok, Poison.encode!(x)}
+    {:ok, Ecto.Adapter.json_library().encode!(x)}
   end
 
   defp json_encode(x), do: {:ok, x}
